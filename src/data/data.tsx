@@ -215,29 +215,13 @@ export const Table31016 = [
   ["4/0 AWG", 195, 230, 260, 150, 180, 205],
 ];
 
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
 export const testTable = [
   ["Size", "Copper", "Aluminum"],
-  ['size1', null, null],
-  ['size2', null, null],
-  ['size3', 15, null],
-  ['size4', 20, 15],
-  ['size5', 30, 25],
+  ["size1", null, null],
+  ["size2", null, null],
+  ["size3", 15, null],
+  ["size4", 20, 15],
+  ["size5", 30, 25],
 ];
 
 export const Prompts = [

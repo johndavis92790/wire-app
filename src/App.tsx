@@ -194,12 +194,12 @@ export function App() {
   function handleCalculate() {
     let modalHeader = "";
     let modalBody = "";
-
+    if (ambientTemp <= 0 || ambientTemp >= 85) {
+      setAmbientTemp(28);
+    }
     if (loadCurrent === 0) {
       modalHeader = "Missing Load Current";
       modalBody = "Please enter a load current.";
-    } else if (ambientTemp <= 0 || ambientTemp >= 85) {
-      setAmbientTemp(28);
     } else if (insulationType === "Select an Option") {
       modalHeader = "Missing Insulation Type";
       modalBody = "Please select an insulation type.";
