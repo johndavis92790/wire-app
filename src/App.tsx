@@ -207,59 +207,73 @@ export function App() {
     let newConductorSize = "";
     let modalHeader = "";
     let modalBody = "";
+
+    // Check for missing inputs
     if (loadCurrent === 0) {
       modalHeader = "Missing Load Current";
       modalBody = "Please enter a load current.";
     } else if (insulationType === "Select an Option") {
       modalHeader = "Missing Insulation Type";
       modalBody = "Please select an insulation type.";
-    } else if (Object.keys(conductor).length === 0) {
+    } else if (!conductor.material || !conductor.rating) {
       modalHeader = "Missing Conductor";
       modalBody = "Please select a conductor material and temperature rating.";
-    } else if (Object.keys(conductorCount).length === 0) {
+    } else if (!conductorCount.percentage) {
       modalHeader = "Missing Conductor Count";
       modalBody = "Please select a conductor count.";
     } else {
       let newLoadCurrent = loadCurrent;
+
       // D7
+      // Apply correction factor if ambient temperature is not 30°C
       if (ambientTemp !== 30) {
         const factor = calculateTable31015B1(conductor, ambientTempObject);
         if (typeof factor === "number") {
           newLoadCurrent = Math.round(newLoadCurrent / factor);
         }
       }
+
       // D8
+      // Apply adjustment factor for conductor count
       if (conductorCount) {
         newLoadCurrent = Math.round(newLoadCurrent / conductorCount.percentage);
       }
+
       // P9
-      if (!Table31016[0]) return;
-      const array = Table31016 as any[];
+      // Find matching column in Table 310-16
       const headerArray = Table31016[0] as Table31016HeaderObject[];
-      let column = 0;
-      for (let i = 0; i < headerArray.length; i++) {
-        const option = headerArray[i];
-        if (
+      const matchingOption = headerArray.find(
+        (option) =>
           option.ConductorMaterial === conductor.material &&
-          option.Types.includes(insulationType)
-        ) {
-          if (
-            option.ConductorTempRating === conductor.rating ||
+          option.Types.includes(insulationType) &&
+          (option.ConductorTempRating === conductor.rating ||
             (option.ConductorTempRating === "75°C (167°F)" &&
               conductor.rating === "60°C (140°F)") ||
             (option.ConductorTempRating === "90°C (194°F)" &&
               (conductor.rating === "75°C (167°F)" ||
-                conductor.rating === "60°C (140°F)"))
-          ) {
-            column = i;
-            break;
-          }
-        }
-      }
-      for (let i = 0; i < array.length; i++) {
-        if (array[i][column] !== null && array[i][column] >= newLoadCurrent) {
-          newAmpacity = array[i][column];
-          newConductorSize = array[i][0];
+                conductor.rating === "60°C (140°F)")))
+      );
+
+      if (!matchingOption) {
+        modalHeader = "No Matching Option Found";
+        modalBody =
+          "There is no matching option in Table 310-16 for the selected inputs.";
+      } else {
+        const column = headerArray.indexOf(matchingOption);
+
+        // Find matching row in Table 310-16
+        const array = Table31016 as any[];
+        const matchingRow = array.find(
+          (row) => row[column] !== null && row[column] >= newLoadCurrent
+        );
+
+        if (!matchingRow) {
+          modalHeader = "No Matching Row Found";
+          modalBody =
+            "There is no matching row in Table 310-16 for the selected inputs.";
+        } else {
+          newAmpacity = matchingRow[column];
+          newConductorSize = matchingRow[0];
           setAmpacity(newAmpacity);
           setConductorSize(newConductorSize);
           return;
@@ -267,6 +281,7 @@ export function App() {
       }
     }
 
+    // Show error message in modal
     setModalText({
       header: modalHeader,
       body: modalBody,
