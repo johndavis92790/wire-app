@@ -199,14 +199,7 @@ export function App() {
       modalHeader = "Missing Load Current";
       modalBody = "Please enter a load current.";
     } else if (ambientTemp <= 0 || ambientTemp >= 85) {
-      if (fahrenheitOrCelsius === "F") {
-        modalBody =
-          "The temperature you entered is not between 0 and 185 degrees Fahrenheit. Please enter a valid temperature.";
-      } else {
-        modalBody =
-          "The temperature you entered is not between 0 and 85 degrees Celsius. Please enter a valid temperature.";
-      }
-      modalHeader = "Invalid Temperature";
+      setAmbientTemp(28);
     } else if (insulationType === "Select an Option") {
       modalHeader = "Missing Insulation Type";
       modalBody = "Please select an insulation type.";
