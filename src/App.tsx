@@ -45,10 +45,12 @@ export function App() {
 
   const [ampacity, setAmpacity] = useState(0);
   const [loadCurrent, setLoadCurrent] = useState(0);
-  const [ambientTemp, setAmbientTemp] = useState(0);
-  const [ambientTempObject, setAmbientTempObject] = useState(
-    {} as AmbientTempObject
-  );
+  const [ambientTemp, setAmbientTemp] = useState(30);
+  const [ambientTempObject, setAmbientTempObject] = useState({
+    label: "26–30° C (78–86° F)",
+    lowValue: 26,
+    highValue: 30,
+  } as AmbientTempObject);
   const [conductorSize, setConductorSize] = useState("");
   const [conductor, setConductor] = useState({} as Conductor);
   const [insulationType, setInsulationType] = useState("Select an Option");
@@ -108,6 +110,15 @@ export function App() {
               <Form.Control
                 onChange={(event) => {
                   const value = parseInt(event.target.value);
+                  if (isNaN(value)) {
+                    setAmbientTemp(30);
+                    setAmbientTempObject({
+                      label: "26–30° C (78–86° F)",
+                      lowValue: 26,
+                      highValue: 30,
+                    });
+                    return;
+                  }
                   const celsiusTemp =
                     fahrenheitOrCelsius === "F"
                       ? fahrenheitToCelsius(value)
@@ -192,11 +203,10 @@ export function App() {
   }
 
   function handleCalculate() {
+    let newAmpacity = 0;
+    let newConductorSize = "";
     let modalHeader = "";
     let modalBody = "";
-    if (ambientTemp <= 0 || ambientTemp >= 85) {
-      setAmbientTemp(28);
-    }
     if (loadCurrent === 0) {
       modalHeader = "Missing Load Current";
       modalBody = "Please enter a load current.";
@@ -227,19 +237,31 @@ export function App() {
       const array = Table31016 as any[];
       const headerArray = Table31016[0] as Table31016HeaderObject[];
       let column = 0;
-      headerArray.forEach((option) => {
+      for (let i = 0; i < headerArray.length; i++) {
+        const option = headerArray[i];
         if (
           option.ConductorMaterial === conductor.material &&
-          option.ConductorTempRating === conductor.rating &&
           option.Types.includes(insulationType)
         ) {
-          column = headerArray.indexOf(option);
+          if (
+            option.ConductorTempRating === conductor.rating ||
+            (option.ConductorTempRating === "75°C (167°F)" &&
+              conductor.rating === "60°C (140°F)") ||
+            (option.ConductorTempRating === "90°C (194°F)" &&
+              (conductor.rating === "75°C (167°F)" ||
+                conductor.rating === "60°C (140°F)"))
+          ) {
+            column = i;
+            break;
+          }
         }
-      });
+      }
       for (let i = 0; i < array.length; i++) {
         if (array[i][column] !== null && array[i][column] >= newLoadCurrent) {
-          setAmpacity(array[i][column]);
-          setConductorSize(array[i][0]);
+          newAmpacity = array[i][column];
+          newConductorSize = array[i][0];
+          setAmpacity(newAmpacity);
+          setConductorSize(newConductorSize);
           return;
         }
       }
