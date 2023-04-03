@@ -93,7 +93,7 @@ export function App() {
         </Form.Group>
 
         <Form.Group className="mb-4">
-          <Form.Label>Ambient Temperature</Form.Label>
+          <Form.Label>Ambient Temperature - Optional</Form.Label>
           <Row>
             <Col xs={3}>
               <Form.Select
